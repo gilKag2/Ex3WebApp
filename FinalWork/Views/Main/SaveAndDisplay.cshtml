@@ -1,0 +1,73 @@
+﻿@{
+    ViewBag.Title = "SaveAndDisplay";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+</head>
+<body background="~/Images/export-map-share.png" style="background-size:100% 100%;background-attachment:fixed;width:100%;height:100%;overflow: hidden;">
+    <canvas id="page_canvas" style="width:100%; height:100%;"></canvas>
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <script>
+        var IntervalTime = @Session["RefreshRate"] * 1000
+        var canvas = document.getElementById("page_canvas");
+        var canvas_context = canvas.getContext("2d");
+        var image = document.getElementById("map");
+        var newLat = null;
+        var newLon = null;
+        var prevLat = parseFloat(@Session["Lat"]);
+        var prevLon = parseFloat(@Session["Lon"]);
+        var time = parseInt(@Session["Duration"]) * 1000;
+        var start = new Date().getTime();
+        var my_interval;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        canvas_context.fillStyle = "red";
+        canvas_context.lineWidth = "2";
+        canvas_context.strokeStyle = "red";
+
+        prevLat = ((prevLat + 90) / (2 * 90)) * canvas.height;
+        prevLon = ((prevLon + 180) / (2 * 180)) * canvas.width;
+
+        myTimer = (function () {
+            $.post("@Url.Action("GetData")").done(function (xml) {
+                var end = new Date().getTime();
+                if (end - start > time) {
+                    clearInterval(my_interval);
+                    $.post( "@Url.Action("RecordToFile")")
+                }   
+                var xmlDoc = $.parseXML( xml ),
+                $xml = $( xmlDoc ),
+                lon = $xml.find("Lon").text();
+                lat = $xml.find("Lat").text();
+                var normLon = ((parseFloat(lon.valueOf()) + 180) / (2 * 180)) * canvas.width;
+                var normLat = ((parseFloat(lat.valueOf()) + 90) / (2 * 90)) * canvas.height;
+
+                canvas_context.beginPath();
+                canvas_context.moveTo(newLon, newLat);
+                canvas_context.lineTo(normLon, normLat);
+                canvas_context.stroke();
+
+                newLon = normLon;
+                newLat = normLat;
+            });
+        });
+
+        canvas_context.beginPath();
+        canvas_context.arc(prevLon, prevLat, 5, 0, 2 * Math.PI)
+        canvas_context.fill();
+        canvas_context.stroke();
+
+        newLon = prevLon;
+        newLat = prevLat;
+
+        if (IntervalTime != 0) {
+            my_interval = setInterval(myTimer, IntervalTime);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+﻿
+@{
+    ViewBag.Title = "displayIpPort";
+}
+
+
+<html>
+<head>
+</head>
+<body background="~/Images/export-map-share.png" style="background-size:100% 100%;background-attachment:fixed;width:100%;height:100%;overflow: hidden;">
+    <canvas id="page_canvas" style="width:100%; height:100%;"></canvas>
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <script>
+        var canvas = document.getElementById("page_canvas");
+        var canvas_context = canvas.getContext("2d");
+        var prevLat = parseFloat(@Session["Lat"]);
+        var prevLon = parseFloat(@Session["Lon"]);
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        canvas_context.fillStyle = "red";
+        canvas_context.strokeStyle = "red";
+
+        prevLat = ((prevLat / (2 * 90)) + 0.5) * window.innerHeight;
+        prevLon = ((prevLon / (2 * 180))+0.5) * window.innerWidth;
+
+        canvas_context.beginPath();
+        canvas_context.arc(prevLon, prevLat, 5, 0, 2 * Math.PI)
+        canvas_context.fill();
+        canvas_context.stroke();
+
+
+    </script>
+</body>
+</html>
