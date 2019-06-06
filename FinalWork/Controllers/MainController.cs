@@ -21,7 +21,7 @@ namespace FinalWork.Controllers
 
      
         // displays the location of the plane on the map, or redirects to the the file case.
-        [HttpGet]
+       [HttpGet]
         public ActionResult Display(string ip, int port)
         {
             
@@ -38,6 +38,7 @@ namespace FinalWork.Controllers
                 c.ReadData();
                 Location location = c.GetLocation;
                 UpdateSessionDisplay(location.Lon, location.Lat);
+                Session["stop"] = 1;
                 return View("displayIpPort");
             }
             catch

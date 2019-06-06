@@ -14,6 +14,12 @@ namespace FinalWork.Models
     //singleton.
     public sealed class Connection
     {
+
+        private string lonPath = "position/longitude-deg";
+        private string latPath = "position/latitude-deg";
+        private string rudderPath = "/controls/flight/rudder";
+        private string throttlePath = "/controls/engines/current-engine/throttle";
+
         private double _rudder;
         public double Rudder
         {
@@ -26,7 +32,7 @@ namespace FinalWork.Models
             get { return _throttle; }
             set { _throttle = value; }
         }
-       
+
         private Location location;
         public Location GetLocation
         {
@@ -78,7 +84,7 @@ namespace FinalWork.Models
                 _isWaiting = true;
                 try
                 {
-                    _client.Connect(ep);           
+                    _client.Connect(ep);
                 }
                 catch (SocketException) { }
             }
@@ -87,21 +93,32 @@ namespace FinalWork.Models
 
         public void ReadData()
         {
+            location.Lon = GetValueFromServer(lonPath);
+            location.Lat = GetValueFromServer(latPath);
+            Throttle = GetValueFromServer(throttlePath);
+            Rudder = GetValueFromServer(rudderPath);     
+        }
+
+        public double GetValueFromServer(string path)
+        {
             using (NetworkStream stream = _client.GetStream())
             {
                 try
                 {
-                    byte[] data = new Byte[_client.ReceiveBufferSize];
-                    Int32 bytesReaden = stream.Read(data, 0, data.Length);
-                    string[] parsedData = Encoding.ASCII.GetString(data, 0, bytesReaden).Split(',');
+                    
+                    string requestValue = "get" + " " + path + "\r\n";
+                    byte[] data = ASCIIEncoding.ASCII.GetBytes(requestValue);
 
-                    location.Lon = Convert.ToDouble(parsedData[0]);
-                    location.Lat = Convert.ToDouble(parsedData[1]);
-                    Throttle = Convert.ToDouble(parsedData[21]);
-                    Rudder = Convert.ToDouble(parsedData[19]);     // check that there are the values of throttle and rudder.
+                    stream.Write(data, 0, data.Length);
+                    
+                    StreamReader reader = new StreamReader(stream);
+                    string value = reader.ReadLine().Split('\'')[1];
+                    return Convert.ToDouble(value);
                 }
                 catch (SocketException) { };
+
             }
+            return 0;
         }
 
         public void CloseConnection()

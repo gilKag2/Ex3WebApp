@@ -184,7 +184,6 @@
     </Content>
     <Content Include="Views\Web.config" />
     <Content Include="Views\Shared\Error.cshtml" />
-    <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Main\Index.cshtml" />
     <Content Include="Views\Main\SaveAndDisplay.cshtml" />
     <Content Include="Views\Main\display1.cshtml" />
@@ -225,7 +224,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>56887</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:56887/</IISUrl>
+          <IISUrl>http://localhost:56887</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

@@ -22,8 +22,8 @@ namespace FinalWork
             routes.MapRoute("SaveToFile", "save/{ip}/{port}/{refreshRate}/{duration}/{fileName}",
                 defaults: new { controller = "Main", action = "SaveToFile" });
 
-            //routes.MapRoute("Default", "{controller}/{action}/{id}",
-            //    defaults: new { controller = "Main", action = "Index", id = UrlParameter.Optional });
+            routes.MapRoute("Default", "{controller}/{action}/{id}",
+                defaults: new { controller = "Main", action = "Index", id = UrlParameter.Optional });
 
         }
     }
