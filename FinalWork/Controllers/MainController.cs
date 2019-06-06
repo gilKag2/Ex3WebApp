@@ -13,19 +13,20 @@ namespace FinalWork.Controllers
 
     public class MainController : Controller
     {
-       // default case
+        // default case
         public ActionResult Index()
         {
             return View();
         }
 
-     
+
         // displays the location of the plane on the map, or redirects to the the file case.
-       [HttpGet]
+        [HttpGet]
         public ActionResult Display(string ip, int port)
         {
-            
-            try {
+
+            try
+            {
                 // try to parse the ip, if it fails goto different action.
                 IPAddress.Parse(ip);
                 Connection c = Connection.Instance;
@@ -34,12 +35,12 @@ namespace FinalWork.Controllers
                 {
                     c.CloseConnection();
                 }
-                 c.Connect(ip, port);
+                c.Connect(ip, port);
                 c.ReadData();
                 Location location = c.GetLocation;
                 UpdateSessionDisplay(location.Lon, location.Lat);
                 Session["stop"] = 1;
-                return View("displayIpPort");
+                return View();
             }
             catch
             {
@@ -49,21 +50,22 @@ namespace FinalWork.Controllers
         [HttpGet]
         public ActionResult LoadAndDisplay(string fileName, int refreshRate)
         {
-            Information info = new Information();
-            InfoModel.Instance.FileName = fileName;
-            InfoModel.Instance.ReadDataXML();
-            InfoModel.Instance.Index = -1;
-            info = InfoModel.Instance.GetInformation();
-            if (info == null)
+            DataHandler dh = DataHandler.Instance;
+            dh.FileName = fileName;
+            dh.ReadDataFromFile();
+            dh.Index = -1;
+            Data data = DataHandler.Instance.GetNextData();
+            if (data == null)
             {
                 Session["stop"] = 1;
                 return View();
             }
-            UpdateSessionDisplay(info.Lon, info.Lat, refreshRate);
+            Location location = data.Location;
+            UpdateSessionDisplay(location.Lon, location.Lat, refreshRate);
             Session["stop"] = 0;
-            return View("display1");
+            return View();
         }
-    
+
 
         // displays the location of the plane on the map and draws his path, by sampling every 
         // 4 seconds his location.
@@ -80,12 +82,12 @@ namespace FinalWork.Controllers
             c.ReadData();
             Location location = c.GetLocation;
             UpdateSessionDisplay(location.Lon, location.Lat, refreshRate);
-            return View("display1");
+            return View();
         }
 
-       
-         // samples the location of the flight at given(refreshRate) rate for given(duration) time, 
-         // and saves the data in a file in a given name(fileName)
+
+        // samples the location of the flight at given(refreshRate) rate for given(duration) time, 
+        // and saves the data in a file in a given name(fileName)
         [HttpGet]
         public ActionResult SaveAndDisplay(string ip, int port, int refreshRate, int duration, string fileName)
         {
@@ -99,43 +101,47 @@ namespace FinalWork.Controllers
             c.ReadData();
             Location location = c.GetLocation;
             UpdateSessionDisplay(location.Lon, location.Lat, refreshRate, duration);
-            InfoModel.Instance.FileName = fileName;
+            DataHandler.Instance.FileName = fileName;
             return View();
         }
 
-        // reads the data and passes it to the view.
+        // returns the next data to the view.
         [HttpPost]
         public string GetData()
         {
-            var info = new Information();
+            DataHandler dh = DataHandler.Instance;
             Connection c = Connection.Instance;
+            Data data = new Data();
             if (c.IsConnected)
             {
                 c.ReadData();
-                info.Lat = c.GetLocation.Lat;
-                info.Lon = c.GetLocation.Lon;
-                info.Rudder = c.Rudder;
-                info.Throttle = c.Throttle;
-                if (InfoModel.Instance.FileName != "")
-                {
-                    InfoModel.Instance.RecordInfo(info);
-                }
-                return InfoModel.Instance.ToXml(info);
-            }
-            else if (InfoModel.Instance.FileName != "")
-            {
-                info = InfoModel.Instance.GetInformation();
-                if (info == null)
-                {
-                    Session["stop"] = 1;
-                    return null;
-                }
-                return InfoModel.Instance.ToXml(info);
-            }
-            return null;
-        }
+                data.Location.Lat = c.GetLocation.Lat;
+                data.Location.Lon = c.GetLocation.Lon;
+                data.Rudder = c.Rudder;
+                data.Throttle = c.Throttle;
+                if (dh.FileName != "")
+                    dh.SaveData(data);
 
-        private void UpdateSessionDisplay(double lon, double lat, int refreshRate=0, int duration=0)
+                return dh.ToXml(data);
+            }
+            // if the file is empty(no file created), return null;
+            if (dh.FileName == "") return null;
+
+            data = dh.GetNextData();
+            if (data == null)
+            {
+                Session["stop"] = 1;
+                return null;
+            }
+            return DataHandler.Instance.ToXml(data);
+        }
+        [HttpPost]
+        public void SaveToFile()
+        {
+            DataHandler.Instance.SaveToFile();
+        }
+        // updates the session values.
+        private void UpdateSessionDisplay(double lon, double lat, int refreshRate = 0, int duration = 0)
         {
             Session["Lon"] = lon;
             Session["Lat"] = lat;
@@ -143,10 +149,5 @@ namespace FinalWork.Controllers
             Session["Duration"] = duration;
         }
 
-        [HttpPost]
-        public void RecordToFile()
-        {
-            InfoModel.Instance.RecordToFile();
-        }
     }
 }

@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "display2";
+    ViewBag.Title = "DisplayWithRoute";
 }
 
 <!DOCTYPE html>
@@ -12,24 +12,24 @@
     <script src="~/Scripts/jquery-1.10.2.min.js"></script>
     <script src="~/Scripts/bootstrap.min.js"></script>
     <script>
-        var IntervalTime = @Session["RefreshRate"] * 1000
+
         var canvas = document.getElementById("page_canvas");
         var canvas_context = canvas.getContext("2d");
-        var image = document.getElementById("map");
-        var newLat = null;
-        var newLon = null;
-        var prevLat = parseFloat(@Session["Lat"]);
-        var prevLon = parseFloat(@Session["Lon"]);
-        var stop = @Session["stop"];
-
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         canvas_context.fillStyle = "red";
         canvas_context.lineWidth = "2";
         canvas_context.strokeStyle = "red";
 
+        var stop = @Session["stop"];
+        var IntervalTime = @Session["RefreshRate"] * 1000
+        var prevLat = parseFloat(@Session["Lat"]);
+        var prevLon = parseFloat(@Session["Lon"]);
+
         prevLat = ((prevLat + 90) / (2 * 90)) * window.innerHeight;
         prevLon = ((prevLon + 180) / (2 * 180)) * window.innerWidth;
+        var newLat = null;
+        var newLon = null;
 
         myTimer = (function () {
             stop = @Session["stop"];

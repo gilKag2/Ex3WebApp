@@ -12,34 +12,35 @@
     <script src="~/Scripts/jquery-1.10.2.min.js"></script>
     <script src="~/Scripts/bootstrap.min.js"></script>
     <script>
-        var IntervalTime = @Session["RefreshRate"] * 1000
+
         var canvas = document.getElementById("page_canvas");
         var canvas_context = canvas.getContext("2d");
-        var image = document.getElementById("map");
-        var newLat = null;
-        var newLon = null;
-        var prevLat = parseFloat(@Session["Lat"]);
-        var prevLon = parseFloat(@Session["Lon"]);
-        var time = parseInt(@Session["Duration"]) * 1000;
-        var start = new Date().getTime();
-        var my_interval;
-
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         canvas_context.fillStyle = "red";
         canvas_context.lineWidth = "2";
         canvas_context.strokeStyle = "red";
 
+        var IntervalTime = @Session["RefreshRate"] * 1000
+        var prevLat = parseFloat(@Session["Lat"]);
+        var prevLon = parseFloat(@Session["Lon"]);
+        var duration = parseInt(@Session["Duration"]) * 1000;
+
         prevLat = ((prevLat + 90) / (2 * 90)) * canvas.height;
         prevLon = ((prevLon + 180) / (2 * 180)) * canvas.width;
+
+        var start = new Date().getTime();
+        var my_interval = null;
+        var newLat = null;
+        var newLon = null;
 
         myTimer = (function () {
             $.post("@Url.Action("GetData")").done(function (xml) {
                 var end = new Date().getTime();
-                if (end - start > time) {
+                if (end - start > duration) {
                     clearInterval(my_interval);
-                    $.post( "@Url.Action("RecordToFile")")
-                }   
+                    $.post( "@Url.Action("SaveToFile")")
+                }
                 var xmlDoc = $.parseXML( xml ),
                 $xml = $( xmlDoc ),
                 lon = $xml.find("Lon").text();
